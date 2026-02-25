@@ -54,6 +54,16 @@
     },
     "commands": [
       {
+        "command": "berry-db.debugConnections",
+        "title": "Debug Connections",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.runTests",
+        "title": "Run Tests",
+        "category": "Berry DB"
+      },
+      {
         "command": "berry-db.newQuery",
         "title": "New Query",
         "icon": "$(new-file)",
@@ -212,16 +222,6 @@
           "command": "berry-db.refreshConnection",
           "when": "view == connections",
           "group": "navigation"
-        },
-        {
-          "command": "berry-db.showERDiagram",
-          "when": "view == connections",
-          "group": "2_query"
-        },
-        {
-          "command": "berry-db.openRedisCLI",
-          "when": "view == connections && viewItem == connectionConnected",
-          "group": "3_redis"
         }
       ],
       "view/item/context": [
@@ -237,22 +237,17 @@
         },
         {
           "command": "berry-db.editConnection",
-          "when": "view == connections && viewItem == connection",
+          "when": "view == connections && (viewItem == connectionConnected || viewItem == connectionDisconnected)",
           "group": "1_edit"
         },
         {
           "command": "berry-db.deleteConnection",
-          "when": "view == connections && viewItem == connection",
+          "when": "view == connections && (viewItem == connectionConnected || viewItem == connectionDisconnected)",
           "group": "2_delete"
         },
         {
           "command": "berry-db.openQueryEditor",
           "when": "view == connections && viewItem == database",
-          "group": "navigation"
-        },
-        {
-          "command": "berry-db.createTable",
-          "when": "view == connections && viewItem == tables",
           "group": "navigation"
         },
         {

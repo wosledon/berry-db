@@ -53,6 +53,8 @@ export class CommandHandler {
     this.registerCommand('berry-db.disconnect', (id?: string) => this.disconnect(id));
     this.registerCommand('berry-db.refreshConnection', () => this.refreshConnection());
     this.registerCommand('berry-db.refreshCache', (id?: string) => this.refreshCache(id));
+    this.registerCommand('berry-db.debugConnections', () => this.debugConnections());
+    this.registerCommand('berry-db.runTests', () => this.runTests());
     
     // 查询命令
     this.registerCommand('berry-db.newQuery', () => this.newQuery());
@@ -174,8 +176,8 @@ export class CommandHandler {
       this.statusBarManager.updateStatusBar();
       // 刷新缓存
       await this.objectCacheService.refreshCache(connectionId);
-      // 刷新树视图
-      vscode.commands.executeCommand('workbench.actions.view.refresh');
+      // 触发事件刷新树视图
+      this.connectionManager.onDidChangeConnectionsEmitter.fire(undefined);
       console.log(`[Berry DB] 已刷新树视图`);
     } catch (error: any) {
       console.error(`[Berry DB] 连接失败:`, error);
@@ -191,7 +193,8 @@ export class CommandHandler {
   }
 
   async refreshConnection(): Promise<void> {
-    vscode.commands.executeCommand('workbench.actions.view.refresh');
+    // 触发事件刷新树视图
+    this.connectionManager.onDidChangeConnectionsEmitter.fire(undefined);
   }
 
   async refreshCache(connectionId?: string): Promise<void> {
@@ -208,6 +211,93 @@ export class CommandHandler {
       await this.objectCacheService.refreshCache(connectionId);
       vscode.window.showInformationMessage('数据库对象缓存已刷新');
     }
+  }
+
+  /**
+   * 调试连接状态
+   */
+  async debugConnections(): Promise<void> {
+    const connections = this.connectionManager.getAllConnections();
+    const output = vscode.window.createOutputChannel('Berry DB Debug');
+    output.clear();
+    output.appendLine('=== Berry DB 连接调试信息 ===\n');
+    output.appendLine(`总连接数: ${connections.length}\n`);
+    
+    connections.forEach(conn => {
+      const isConnected = this.connectionManager.isConnected(conn.id);
+      output.appendLine(`连接名称: ${conn.name}`);
+      output.appendLine(`连接 ID: ${conn.id}`);
+      output.appendLine(`数据库类型: ${conn.type}`);
+      output.appendLine(`状态: ${isConnected ? '✅ 已连接' : '❌ 未连接'}`);
+      output.appendLine(`contextValue: ${isConnected ? 'connectionConnected' : 'connectionDisconnected'}`);
+      output.appendLine('---');
+    });
+    
+    output.show();
+  }
+
+  /**
+   * 运行测试
+   */
+  async runTests(): Promise<void> {
+    const output = vscode.window.createOutputChannel('Berry DB Tests');
+    output.clear();
+    output.appendLine('=== Berry DB 功能测试 ===\n');
+
+    let passed = 0;
+    let failed = 0;
+
+    // 测试 1: 检查命令
+    output.appendLine('测试 1: 检查命令注册...');
+    const commands = await vscode.commands.getCommands(true);
+    const berryCommands = commands.filter(cmd => cmd.startsWith('berry-db.'));
+    
+    if (berryCommands.length > 0) {
+      output.appendLine(`✅ 找到 ${berryCommands.length} 个 Berry DB 命令`);
+      passed++;
+    } else {
+      output.appendLine('❌ 未找到 Berry DB 命令');
+      failed++;
+    }
+
+    // 测试 2: 检查配置
+    output.appendLine('\n测试 2: 检查配置注册...');
+    const config = vscode.workspace.getConfiguration('berry-db');
+    const connections = config.get('connections', []);
+    
+    if (Array.isArray(connections)) {
+      output.appendLine(`✅ 配置已注册，当前有 ${connections.length} 个连接`);
+      passed++;
+    } else {
+      output.appendLine('❌ 配置未正确注册');
+      failed++;
+    }
+
+    // 测试 3: 检查连接管理器
+    output.appendLine('\n测试 3: 检查连接管理器...');
+    try {
+      const allConnections = this.connectionManager.getAllConnections();
+      output.appendLine(`✅ 连接管理器正常，有 ${allConnections.length} 个连接`);
+      passed++;
+    } catch (error) {
+      output.appendLine(`❌ 连接管理器异常: ${(error as Error).message}`);
+      failed++;
+    }
+
+    // 总结
+    output.appendLine('\n=== 测试总结 ===');
+    output.appendLine(`✅ 通过: ${passed}`);
+    output.appendLine(`❌ 失败: ${failed}`);
+    output.appendLine(`📊 总计: ${passed + failed}`);
+    
+    if (failed === 0) {
+      output.appendLine('\n🎉 所有测试通过！');
+    } else {
+      output.appendLine(`\n⚠️  ${failed} 个测试失败`);
+    }
+
+    output.appendLine('\n📝 提示: 部分功能需要手动测试');
+    output.show();
   }
 
   // ==================== 查询功能 ====================
@@ -236,14 +326,71 @@ SELECT * FROM your_table LIMIT 100;`
       return;
     }
 
-    const query = editor.document.getText();
+    const query = editor.selection.isEmpty 
+      ? editor.document.getText()
+      : editor.document.getText(editor.selection);
+    
     if (!query.trim()) {
       vscode.window.showErrorMessage('请选择要执行的 SQL 语句');
       return;
     }
 
-    // TODO: 获取当前连接并执行
-    vscode.window.showInformationMessage('查询执行功能开发中...');
+    // 获取当前活动连接
+    const connections = this.connectionManager.getAllConnections();
+    const connectedConnections = connections.filter(conn => 
+      this.connectionManager.isConnected(conn.id)
+    );
+
+    if (connectedConnections.length === 0) {
+      vscode.window.showErrorMessage('请先连接数据库');
+      return;
+    }
+
+    // 如果有多个连接，让用户选择
+    let connectionId: string;
+    if (connectedConnections.length > 1) {
+      const items = connectedConnections.map(conn => ({
+        label: conn.name,
+        description: conn.type.toUpperCase(),
+        connectionId: conn.id
+      }));
+      
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: '选择要执行查询的数据库'
+      });
+      
+      if (!selected) return;
+      connectionId = selected.connectionId;
+    } else {
+      connectionId = connectedConnections[0].id;
+    }
+
+    try {
+      const service: any = await this.connectionManager.getService(connectionId);
+      const result = await service.executeQuery(query);
+      
+      // 显示结果
+      this.queryResult.show(result, query);
+      
+      // 记录历史
+      this.queryHistoryService.addHistory({
+        connectionId,
+        databaseName: undefined,
+        query,
+        success: result.success,
+        duration: result.duration,
+        error: result.error
+      });
+    } catch (error: any) {
+      this.queryResult.show({
+        columns: [],
+        rows: [],
+        rowCount: 0,
+        duration: 0,
+        success: false,
+        error: error.message
+      }, query);
+    }
   }
 
   async rerunQuery(item: any): Promise<void> {

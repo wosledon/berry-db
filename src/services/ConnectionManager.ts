@@ -16,7 +16,7 @@ export class ConnectionManager implements vscode.Disposable {
   private connections: Map<string, DatabaseConnection> = new Map();
   private services: Map<string, IDatabaseService> = new Map();
   private secretStorage: vscode.SecretStorage;
-  private onDidChangeConnectionsEmitter: vscode.EventEmitter<void>;
+  public onDidChangeConnectionsEmitter: vscode.EventEmitter<void>;
 
   public readonly onDidChangeConnections: vscode.Event<void>;
 
