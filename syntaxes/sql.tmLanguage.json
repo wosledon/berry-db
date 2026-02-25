@@ -1,0 +1,92 @@
+{
+  "name": "SQL",
+  "scopeName": "source.sql",
+  "fileTypes": ["sql"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-dash.sql",
+          "match": "--.*$"
+        },
+        {
+          "name": "comment.block.sql",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.sql",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "match": "''",
+              "name": "constant.character.escape.sql"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.double.sql",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "match": "\"\"",
+              "name": "constant.character.escape.sql"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.backtick.sql",
+          "begin": "`",
+          "end": "`"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.other.sql",
+          "match": "(?i)\\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|DELETE|CREATE|ALTER|DROP|TABLE|INDEX|VIEW|TRIGGER|PROCEDURE|FUNCTION|DATABASE|SCHEMA|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|AS|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|UNION|ALL|DISTINCT|COUNT|SUM|AVG|MIN|MAX|PRIMARY|KEY|FOREIGN|REFERENCES|CONSTRAINT|UNIQUE|DEFAULT|AUTO_INCREMENT|SERIAL|CASCADE|SET|NULLS|FIRST|LAST|ASC|DESC|EXPLAIN|ANALYZE|BEGIN|COMMIT|ROLLBACK|TRANSACTION|TRUNCATE)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.sql",
+          "match": "(?i)\\b(COALESCE|NULLIF|CAST|CONVERT|CASE|WHEN|THEN|ELSE|END|EXTRACT|DATE_PART|NOW|CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|LOCALTIME|LOCALTIMESTAMP|LOWER|UPPER|TRIM|LTRIM|RTRIM|SUBSTRING|CONCAT|LENGTH|CHAR_LENGTH|REPLACE|POSITION|ROUND|TRUNC|CEIL|FLOOR|ABS|MOD|POWER|SQRT|EXP|LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN|PI|RANDOM|SETSEED)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.sql",
+          "match": "\\b(\\d+\\.?\\d*|\\.\\d+)\\b"
+        }
+      ]
+    }
+  }
+}

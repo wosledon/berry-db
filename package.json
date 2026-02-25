@@ -1,0 +1,379 @@
+{
+  "name": "berry-db",
+  "displayName": "Berry DB - Database Client",
+  "description": "轻量级多数据库客户端 - 支持 SQLite、PostgreSQL、MySQL、Redis",
+  "version": "0.1.0",
+  "publisher": "berry-db",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "database",
+    "sqlite",
+    "postgresql",
+    "mysql",
+    "redis",
+    "sql",
+    "client"
+  ],
+  "activationEvents": [
+    "onView:connections",
+    "onCommand:berry-db.addConnection",
+    "onCommand:berry-db.openQueryEditor"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "berry-db",
+          "title": "Berry DB",
+          "icon": "$(database)"
+        }
+      ]
+    },
+    "views": {
+      "berry-db": [
+        {
+          "id": "connections",
+          "name": "Connections",
+          "icon": "resources/icons/connection.svg"
+        },
+        {
+          "id": "queryHistory",
+          "name": "Query History",
+          "icon": "resources/icons/history.svg",
+          "when": "berry-db.hasConnections"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "berry-db.newQuery",
+        "title": "New Query",
+        "icon": "$(new-file)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.addConnection",
+        "title": "Add Connection",
+        "icon": "$(plus)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.editConnection",
+        "title": "Edit Connection",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.deleteConnection",
+        "title": "Delete Connection",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.refreshConnection",
+        "title": "Refresh",
+        "icon": "$(refresh)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.refreshCache",
+        "title": "Refresh Object Cache",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.connect",
+        "title": "Connect",
+        "icon": "$(plug)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.disconnect",
+        "title": "Disconnect",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.executeQuery",
+        "title": "Execute Query",
+        "icon": "$(play)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.openQueryEditor",
+        "title": "Open Query Editor",
+        "icon": "$(new-file)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.createTable",
+        "title": "Create Table",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.viewTableData",
+        "title": "View Data",
+        "icon": "$(table)",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.viewTableStructure",
+        "title": "View Structure",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.editTableStructure",
+        "title": "Edit Structure",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.dropTable",
+        "title": "Drop Table",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.truncateTable",
+        "title": "Truncate Table",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.exportData",
+        "title": "Export Data",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.importData",
+        "title": "Import Data",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.rerunQuery",
+        "title": "Rerun Query",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.clearQueryHistory",
+        "title": "Clear Query History",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.saveQuery",
+        "title": "Save Query",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.showSavedQueries",
+        "title": "Show Saved Queries",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.insertSnippet",
+        "title": "Insert SQL Snippet",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.viewRedisKey",
+        "title": "View Key",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.deleteRedisKey",
+        "title": "Delete Key",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.openRedisCLI",
+        "title": "Open Redis CLI",
+        "category": "Berry DB"
+      },
+      {
+        "command": "berry-db.showERDiagram",
+        "title": "Show ER Diagram",
+        "category": "Berry DB"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "berry-db.newQuery",
+          "when": "view == connections",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.addConnection",
+          "when": "view == connections",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.refreshConnection",
+          "when": "view == connections",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.showERDiagram",
+          "when": "view == connections",
+          "group": "2_query"
+        },
+        {
+          "command": "berry-db.openRedisCLI",
+          "when": "view == connections && viewItem == connectionConnected",
+          "group": "3_redis"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "berry-db.connect",
+          "when": "view == connections && viewItem == connectionDisconnected",
+          "group": "inline"
+        },
+        {
+          "command": "berry-db.disconnect",
+          "when": "view == connections && viewItem == connectionConnected",
+          "group": "inline"
+        },
+        {
+          "command": "berry-db.editConnection",
+          "when": "view == connections && viewItem == connection",
+          "group": "1_edit"
+        },
+        {
+          "command": "berry-db.deleteConnection",
+          "when": "view == connections && viewItem == connection",
+          "group": "2_delete"
+        },
+        {
+          "command": "berry-db.openQueryEditor",
+          "when": "view == connections && viewItem == database",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.createTable",
+          "when": "view == connections && viewItem == tables",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.viewTableData",
+          "when": "view == connections && viewItem == table",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.viewTableStructure",
+          "when": "view == connections && viewItem == table",
+          "group": "1_structure"
+        },
+        {
+          "command": "berry-db.dropTable",
+          "when": "view == connections && viewItem == table",
+          "group": "3_delete"
+        },
+        {
+          "command": "berry-db.viewRedisKey",
+          "when": "view == connections && viewItem == redisKey",
+          "group": "navigation"
+        },
+        {
+          "command": "berry-db.deleteRedisKey",
+          "when": "view == connections && viewItem == redisKey",
+          "group": "2_delete"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "berry-db.executeQuery",
+          "when": "resourceLangId == sql",
+          "group": "navigation"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "sql",
+        "extensions": [".sql"],
+        "aliases": ["SQL"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "sql",
+        "scopeName": "source.sql",
+        "path": "./syntaxes/sql.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Berry DB",
+      "properties": {
+        "berry-db.queryTimeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "查询超时时间（毫秒）"
+        },
+        "berry-db.maxResults": {
+          "type": "number",
+          "default": 1000,
+          "description": "查询结果最大行数"
+        },
+        "berry-db.autoRefresh": {
+          "type": "boolean",
+          "default": false,
+          "description": "自动刷新数据库结构"
+        },
+        "berry-db.readOnlyMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "默认只读模式"
+        },
+        "berry-db.connections": {
+          "type": "array",
+          "default": [],
+          "description": "数据库连接列表",
+          "scope": "global"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/ioredis": "^5.0.0",
+    "@types/mocha": "^10.0.6",
+    "@types/mysql": "^2.15.25",
+    "@types/node": "18.x",
+    "@types/pg": "^8.10.9",
+    "@types/ssh2": "^1.11.15",
+    "@types/sql.js": "^1.4.9",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "ioredis": "^5.3.2",
+    "mysql2": "^3.6.5",
+    "pg": "^8.11.3",
+    "sql.js": "^1.10.3",
+    "ssh2": "^1.15.0",
+    "sql-formatter": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/berry-db/berry-db.git"
+  },
+  "icon": "resources/icons/icon.png",
+  "license": "MIT"
+}
