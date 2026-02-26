@@ -59,13 +59,13 @@ export async function activate(context: vscode.ExtensionContext) {
     objectCacheService = new DatabaseObjectCacheService(connectionManager);
     context.subscriptions.push(objectCacheService);
 
-    // 初始化 SQL 语言服务提供者
-    sqlLanguageProvider = new SqlLanguageProvider(objectCacheService, connectionManager);
-    context.subscriptions.push(sqlLanguageProvider);
-
     // 初始化状态栏管理器
     statusBarManager = new StatusBarManager(connectionManager);
     context.subscriptions.push(statusBarManager);
+
+    // 初始化 SQL 语言服务提供者（需要 statusBarManager 来获取活动连接）
+    sqlLanguageProvider = new SqlLanguageProvider(objectCacheService, connectionManager, statusBarManager);
+    context.subscriptions.push(sqlLanguageProvider);
 
     // 注册连接树提供者
     const connectionProvider = new ConnectionProvider(connectionManager);

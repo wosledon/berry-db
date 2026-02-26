@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { DatabaseObjectCacheService, DatabaseObject } from './DatabaseObjectCacheService';
 import { ConnectionManager } from './ConnectionManager';
+import { StatusBarManager } from './StatusBarManager';
 
 export class SqlLanguageProvider implements vscode.Disposable {
   private completionProvider: SqlCompletionProvider;
@@ -15,10 +16,11 @@ export class SqlLanguageProvider implements vscode.Disposable {
 
   constructor(
     private cacheService: DatabaseObjectCacheService,
-    private connectionManager: ConnectionManager
+    private connectionManager: ConnectionManager,
+    private statusBarManager?: StatusBarManager
   ) {
-    this.completionProvider = new SqlCompletionProvider(cacheService);
-    this.hoverProvider = new SqlHoverProvider(cacheService);
+    this.completionProvider = new SqlCompletionProvider(cacheService, this);
+    this.hoverProvider = new SqlHoverProvider(cacheService, this);
     this.signatureHelpProvider = new SqlSignatureHelpProvider();
 
     // 注册提供者
@@ -35,6 +37,37 @@ export class SqlLanguageProvider implements vscode.Disposable {
         '(', ','
       )
     );
+  }
+
+  /**
+   * 获取活动连接 ID（公共方法，供提供者使用）
+   */
+  public getActiveConnectionId(): string | null {
+    // 从状态栏管理器获取活动连接
+    if (this.statusBarManager && this.statusBarManager.activeConnectionId) {
+      return this.statusBarManager.activeConnectionId;
+    }
+
+    // 如果状态栏没有，尝试从当前编辑器文档中获取
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      // 检查文档 URI 中是否包含连接 ID
+      const connId = editor.document.uri.query;
+      if (connId) {
+        return connId;
+      }
+    }
+
+    // 最后尝试从缓存中获取第一个连接
+    const connections = this.connectionManager.getAllConnections();
+    const connected = connections.filter(conn =>
+      this.connectionManager.isConnected(conn.id)
+    );
+    if (connected.length > 0) {
+      return connected[0].id;
+    }
+
+    return null;
   }
 
   /**
@@ -97,7 +130,7 @@ class SqlCompletionProvider implements vscode.CompletionItemProvider {
     { name: 'NULLIF()', detail: '相等返回 NULL' }
   ];
 
-  constructor(private cacheService: DatabaseObjectCacheService) {}
+  constructor(private cacheService: DatabaseObjectCacheService, private languageProvider: SqlLanguageProvider) {}
 
   async provideCompletionItems(
     document: vscode.TextDocument,
@@ -111,7 +144,7 @@ class SqlCompletionProvider implements vscode.CompletionItemProvider {
     const word = wordRange ? document.getText(wordRange) : '';
 
     // 获取当前连接（从活动编辑器）
-    const connectionId = this.getActiveConnectionId();
+    const connectionId = this.languageProvider.getActiveConnectionId();
 
     // 1. SQL 关键字补全
     if (word.length > 0) {
@@ -221,22 +254,13 @@ class SqlCompletionProvider implements vscode.CompletionItemProvider {
     
     return null;
   }
-
-  /**
-   * 获取活动连接 ID
-   */
-  private getActiveConnectionId(): string | null {
-    // 这里可以从状态栏管理器或配置中获取
-    // 简化实现：返回 null，表示不显示特定连接的对象
-    return null;
-  }
 }
 
 /**
  * SQL 悬停提示提供者
  */
 class SqlHoverProvider implements vscode.HoverProvider {
-  constructor(private cacheService: DatabaseObjectCacheService) {}
+  constructor(private cacheService: DatabaseObjectCacheService, private languageProvider: SqlLanguageProvider) {}
 
   async provideHover(
     document: vscode.TextDocument,
@@ -247,7 +271,7 @@ class SqlHoverProvider implements vscode.HoverProvider {
     if (!wordRange) return null;
 
     const word = document.getText(wordRange);
-    const connectionId = this.getActiveConnectionId();
+    const connectionId = this.languageProvider.getActiveConnectionId();
 
     if (!connectionId || !this.cacheService.hasCache(connectionId)) {
       return null;
@@ -286,7 +310,7 @@ class SqlHoverProvider implements vscode.HoverProvider {
   }
 
   private getActiveConnectionId(): string | null {
-    return null;
+    return this.languageProvider.getActiveConnectionId();
   }
 }
 

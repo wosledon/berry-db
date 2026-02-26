@@ -40,7 +40,7 @@ export class CommandHandler {
     this.tableEditor = new TableEditorProvider(context.extensionPath);
     this.redisCli = new RedisCliProvider(context.extensionPath);
     this.erDiagram = new ErDiagramProvider(context.extensionPath);
-    
+
     this.registerCommands();
   }
 
@@ -92,7 +92,7 @@ export class CommandHandler {
     this.registerCommand('berry-db.openRedisCLI', (connId?: string) => this.openRedisCli(connId));
     
     // ER 图
-    this.registerCommand('berry-db.showERDiagram', (connId?: string, database?: string) => 
+    this.registerCommand('berry-db.showERDiagram', (connId?: string, database?: string) =>
       this.showErDiagram(connId, database));
   }
 

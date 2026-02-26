@@ -9,7 +9,7 @@ import type { DatabaseConnection } from '../types';
 
 export class StatusBarManager implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
-  private activeConnectionId?: string;
+  public activeConnectionId?: string;
 
   constructor(private connectionManager: ConnectionManager) {
     this.statusBarItem = vscode.window.createStatusBarItem(
